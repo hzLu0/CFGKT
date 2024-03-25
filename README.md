@@ -1,4 +1,5 @@
 Dependencies:
+===
 
 Python >= 3.7
 
@@ -12,9 +13,15 @@ sklearn
 
 
 Dataset:
+===
+ASSIST: 
+---
+https://sites.google.com/site/assistmentsdata
 
-ASSIST: https://sites.google.com/site/assistmentsdata
+Junyi:
+---
+https://pslcdatashop.web.cmu.edu/DatasetInfo?datasetId=1275
 
-Junyi: https://pslcdatashop.web.cmu.edu/DatasetInfo?datasetId=1275
-
-NIPS: https://eedi.com/projects/neurips-education-challenge
+NIPS:
+---
+https://eedi.com/projects/neurips-education-challenge
