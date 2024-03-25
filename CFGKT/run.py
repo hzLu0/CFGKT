@@ -1,6 +1,6 @@
 from prepare_data import CFGKT_dataset
-from SAKT import CFGKT
-from SAKTLoss import Loss
+from CFGKT import CFGKT
+from Loss import Loss
 from utils import train_one_epoch, test_one_epoch
 import argparse
 import torch
