@@ -1,1 +1,4 @@
-
+CFGKT.py is the model structure
+Loss.py is the cross-entropy objective function
+utils.py is composed of earlystopping, train, val, and test.
+run.py is the main function.
