@@ -18,7 +18,7 @@ class Dim(IntEnum):
 class CFGKT(nn.Module):
     def __init__(self, n_question, n_pid, d_model, n_blocks,
                  kq_same, dropout, model_type, memory_size,final_fc_dim,
-                 n_heads, d_ff,time,interval, separate_qa=False):
+                 n_heads, d_ff,time,interval, separate_qa=False,attn_=True):
         super().__init__()
         '''
         CFGKT consists of the state-enhanced embedding, the coarse-grained memory, the fine-grained memory, and 
@@ -33,6 +33,7 @@ class CFGKT(nn.Module):
         self.time = time
         self.interval = interval
         self.d_model = d_model
+        self.attn_ = attn_
 
         # Whether to represent the discrepancy in exercises and answers.
         if self.n_pid > 0:
@@ -60,7 +61,8 @@ class CFGKT(nn.Module):
         kaiming_normal_(self.MS)
 
         self.final_final_attn = my_MultiheadAttention_distilling(self.d_model, n_heads, device)
-        self.final_attn = nn.MultiheadAttention(embed_dim=self.d_model, num_heads=4, dropout=dropout, batch_first=True)
+        if self.attn_ == True:
+            self.final_attn = nn.MultiheadAttention(embed_dim=self.d_model, num_heads=4, dropout=dropout, batch_first=True)
         self.rnn_a = nn.Linear(self.d_model, self.d_model)
         self.attn_a = nn.Linear(self.d_model, self.d_model)
         self.cgm = ext_mem(self.d_model, memory_size)
