@@ -67,13 +67,13 @@ def run(args):
 
     del train_dataset, val_dataset, test_dataset
     gc.collect()
-    sakt = CFGKT(n_question=n_cats, n_pid=n_skills, d_model=args.embed_dim, n_blocks=args.n_blocks,
+    KT_model = CFGKT(n_question=n_cats, n_pid=n_skills, d_model=args.embed_dim, n_blocks=args.n_blocks,
                  kq_same = args.kq_same, dropout=args.dropout, model_type='CFGKT',memory_size=args.memory_size,
                final_fc_dim=args.final_fc_dim,n_heads=args.n_heads,d_ff=args.d_ff,
                time=args.time,interval=args.interval)
     optimizer = torch.optim.Adam(sakt.parameters(), lr=args.learning_rate)
-    sakt_loss = Loss()
-    train_one_epoch(sakt, train_loader, val_loader,optimizer, sakt_loss, args.epoch,device)
+    kt_loss = Loss()
+    train_one_epoch(KT_model, train_loader, val_loader,optimizer, kt_loss, args.epoch,device)
     save_model = torch.load('./best_model.pth')
     test_one_epoch(model=save_model, test_iterator=test_loader, device=device)
 
