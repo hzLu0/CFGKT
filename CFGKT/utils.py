@@ -44,12 +44,12 @@ def train_one_epoch(model, train_iterator, val_loader, optim, loss_function, epo
     scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=4, gamma=0.9)
     for j in range(epoch):
         print('----------------epoch:' ,j)
-        for i, (qa, qid, labels, mask, concept, dotime, lagtime) in enumerate(train_iterator):
-            qa, qid, labels, mask, concept, dotime, lagtime = (qa.to(device), qid.to(device), labels.to(device),
+        for i, (qa, qid, labels, mask, concept, dotime, interval) in enumerate(train_iterator):
+            qa, qid, labels, mask, concept, dotime, interval = (qa.to(device), qid.to(device), labels.to(device),
                                                               mask.to(device), concept.to(device),
-                                                              dotime.to(device), lagtime.to(device))
+                                                              dotime.to(device), interval.to(device))
             optim.zero_grad()
-            pred = model(concept,qa,labels,qid, dotime, lagtime)
+            pred = model(concept,qa,labels,qid, dotime, interval)
             loss = loss_function(pred, labels, mask)
             if i % 5 == 0:
                 print("Train--Loss: {:.5}".format(loss.item()))
@@ -67,29 +67,28 @@ def eval_one_epoch(model, val_iterator, device,loss_function):
     stop_sign = False
     model.eval()
     with torch.no_grad():
-        preds_no_first = []
-        truths_no_first = []
-        for i, (qa, qid, labels, mask, concept, dotime, lagtime) in enumerate(val_iterator):
-            qa, qid, labels, mask, concept, dotime, lagtime = (qa.to(device), qid.to(device), labels.to(device),
+        preds_list = []
+        truths_list = []
+        for i, (qa, qid, labels, mask, concept, dotime, interval) in enumerate(val_iterator):
+            qa, qid, labels, mask, concept, dotime, interval = (qa.to(device), qid.to(device), labels.to(device),
                                                               mask.to(device), concept.to(device),
-                                                              dotime.to(device), lagtime.to(device))
+                                                              dotime.to(device), interval.to(device))
 
-            pred = model(concept, qa, labels, qid, dotime, lagtime)
+            pred = model(concept, qa, labels, qid, dotime, interval)
             loss = loss_function(pred, labels, mask)
-            print('vallllllllll----loss  :', loss.item())
-            truth_no_first, pred_no_first = values_after_mask(pred, labels, mask)
-            truths_no_first.append(truth_no_first)
-            preds_no_first.append(pred_no_first)
+            print('val-loss  :', loss.item())
+            truth, pred = values_after_mask(pred, labels, mask)
+            truths_list.append(truth)
+            preds_list.append(pred)
 
-        truths_no_first = np.concatenate(truths_no_first)
-        preds_no_first = np.concatenate(preds_no_first)
+        truths_list = np.concatenate(truths_list)
+        preds_list = np.concatenate(preds_list)
 
-        auc_no_first = roc_auc_score(truths_no_first, preds_no_first)
-        acc_no_first = accuracy_score(truths_no_first, preds_no_first.round())
-        f1_no_last = f1_score(truths_no_first, preds_no_first.round())
-        print("\nvalllllllauc_no_last=%.4f acc_no_last=%.4f f1_no_last=%.4f" % (
-        auc_no_first, acc_no_first, f1_no_last))
-        early_stopping(auc_no_first*(-1), model)
+        auc = roc_auc_score(truths_list, preds_list)
+        acc = accuracy_score(truths_list, preds_list.round())
+        f1 = f1_score(truths_list, preds_list.round())
+        print("\nval-auc=%.4f acc=%.4f f1=%.4f" % (auc, acc, f1))
+        early_stopping(auc*(-1), model)
         if early_stopping.early_stop:
             print("stop training!!!!!!!!")
             stop_sign = True
@@ -99,27 +98,26 @@ def eval_one_epoch(model, val_iterator, device,loss_function):
 def test_one_epoch(model, test_iterator, device):
     model.eval()
     with torch.no_grad():
-        preds_no_first = []
-        truths_no_first = []
+        preds_list = []
+        truths_list = []
 
-        for i, (qa, qid, labels, mask, concept, dotime, lagtime) in enumerate(test_iterator):
-            qa, qid, labels, mask, concept, dotime, lagtime = (qa.to(device), qid.to(device), labels.to(device),
+        for i, (qa, qid, labels, mask, concept, dotime, interval) in enumerate(test_iterator):
+            qa, qid, labels, mask, concept, dotime, interval = (qa.to(device), qid.to(device), labels.to(device),
                                                                mask.to(device), concept.to(device),
-                                                               dotime.to(device), lagtime.to(device))
+                                                               dotime.to(device), interval.to(device))
             with torch.no_grad():
-                pred = model(concept, qa, labels, qid, dotime, lagtime)
-            truth_no_first, pred_no_first = values_after_mask(pred, labels, mask)
-            truths_no_first.append(truth_no_first)
-            preds_no_first.append(pred_no_first)
+                pred = model(concept, qa, labels, qid, dotime, interval)
+            truth, pred = values_after_mask(pred, labels, mask)
+            truths_list.append(truth)
+            preds_list.append(pred)
 
-        truths_no_first = np.concatenate(truths_no_first)
-        preds_no_first = np.concatenate(preds_no_first)
-        mse = mean_squared_error(truths_no_first,preds_no_first)
-        auc_no_first = roc_auc_score(truths_no_first, preds_no_first)
-        acc_no_first = accuracy_score(truths_no_first, preds_no_first.round())
-        f1_no_last = f1_score(truths_no_first, preds_no_first.round())
-        print("\nauc_no_last=%.4f acc_no_last=%.4f f1_no_last=%.4f" % (
-        auc_no_first, acc_no_first, f1_no_last))
+        truths_list = np.concatenate(truths_list)
+        preds_list = np.concatenate(preds_list)
+        mse = mean_squared_error(truths_list,preds_list)
+        auc = roc_auc_score(truths_list, preds_list)
+        acc = accuracy_score(truths_list, preds_list.round())
+        f1 = f1_score(truths_list, preds_list.round())
+        print("\nauc=%.4f acc=%.4f f1=%.4f mse=%.4f" % (auc, acc, f1, mse))
         print('MSE',mse)
 
 def values_after_mask(pred, labels, mask):
