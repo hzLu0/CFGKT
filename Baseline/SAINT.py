@@ -7,7 +7,7 @@ from torch.nn.init import xavier_uniform_,constant_
 class SAINT+(nn.Module):
     def __init__(self, n_encoder, n_decoder, enc_heads, dec_heads, n_dims, total_ex, total_cat, total_responses,
                  seq_len):
-        super(SAINT, self).__init__()
+        super(SAINT+, self).__init__()
         self.n_encoder = n_encoder
         self.n_decoder = n_decoder
         self.seq_len = seq_len
