@@ -3,9 +3,8 @@ from torch import nn
 import copy
 from torch.nn.init import xavier_uniform_,constant_
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-class SAINT(nn.Module):
+class SAINT+(nn.Module):
     def __init__(self, n_encoder, n_decoder, enc_heads, dec_heads, n_dims, total_ex, total_cat, total_responses,
                  seq_len):
         super(SAINT, self).__init__()
