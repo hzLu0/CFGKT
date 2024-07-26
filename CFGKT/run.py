@@ -44,9 +44,9 @@ def run(args):
     train, val = train_test_split(group, test_size=0.2)
     val, test = train_test_split(val,test_size=0.5)
     print("train size: ", train.shape, "validation size: ", val.shape, "Test size: ",test.shape)
-    train_dataset = CFGKT_dataset(train.values, n_skills=n_ques, n_concept=n_conc, max_seq=args.max_len)
-    val_dataset = CFGKT_dataset(val.values, n_skills=n_ques, n_concept=n_conc, max_seq=args.max_len)
-    test_dataset = CFGKT_dataset(test.values, n_skills=n_ques, n_concept=n_conc, max_seq=args.max_len)
+    train_dataset = CFGKT_dataset(train.values, n_ques=n_ques, n_concept=n_conc, max_seq=args.max_len)
+    val_dataset = CFGKT_dataset(val.values, n_ques=n_ques, n_concept=n_conc, max_seq=args.max_len)
+    test_dataset = CFGKT_dataset(test.values, n_ques=n_ques, n_concept=n_conc, max_seq=args.max_len)
     train_loader = DataLoader(train_dataset,
                               batch_size=args.batch_size,
                               shuffle=True)
