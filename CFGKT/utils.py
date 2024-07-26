@@ -5,7 +5,7 @@ import random
 import os
 
 class EarlyStopping():
-    def __init__(self, patience=5, verbose=False, delta=0):
+    def __init__(self, patience=7, verbose=False, delta=0):
         self.patience = patience
         self.verbose = verbose
         self.counter = 0
