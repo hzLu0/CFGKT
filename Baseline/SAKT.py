@@ -3,9 +3,9 @@ import torch.nn as nn
 import numpy as np
 
 
-class SAKTModel(nn.Module):
+class SAKT(nn.Module):
     def __init__(self, n_skill, emb_dim, num_heads, max_len, device, dropout=0.2):
-        super(SAKTModel, self).__init__()
+        super(SAKT, self).__init__()
         self.n_skill = n_skill
         self.emb_dim = emb_dim
         self.num_heads = num_heads
@@ -43,7 +43,6 @@ class SAKTModel(nn.Module):
           the embedding dimension.
         """
 
-        # mask是128*128的矩阵，上三角为True，k=1不包括对角线，True表示不参加计算
         mask = np.triu(np.ones((q_embed.size(0), q_embed.size(0))), k=1).astype("bool")
         mask = torch.from_numpy(mask).to(self.device)
         # attn_mask size(target seq len, source seq len)
@@ -56,7 +55,6 @@ class SAKTModel(nn.Module):
         x = torch.sigmoid(x)
         return x.squeeze(-1)
 
-# Formula (5) in paper
 class FFN(nn.Module):
     def __init__(self, state_dimension, dropout):
         super(FFN, self).__init__()
