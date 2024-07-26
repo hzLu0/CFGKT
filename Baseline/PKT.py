@@ -3,10 +3,10 @@ import torch.nn as nn
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-class DKTInSkillQues(nn.Module):
+class PKT(nn.Module):
 
     def __init__(self, nQues, szRnnIn, szRnnOut, nRnnLayer, szOut, dropout, opt):
-        super(DKTInSkillQues, self).__init__()
+        super(PKT, self).__init__()
         self.encoderQuesLabel = nn.Embedding(num_embeddings=2 * nQues + 1, embedding_dim=szRnnIn, padding_idx=0)
         self.rnn = nn.LSTM(input_size=szRnnIn, hidden_size=szRnnOut, num_layers=nRnnLayer, batch_first=True, dropout=dropout)
 
