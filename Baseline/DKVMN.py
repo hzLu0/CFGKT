@@ -1,5 +1,4 @@
 import torch
-
 from torch.nn import Module, Parameter, Embedding, Linear, Dropout
 from torch.nn.init import kaiming_normal_
 
