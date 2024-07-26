@@ -4,7 +4,6 @@ from torch.nn.init import xavier_uniform_
 from torch.nn.init import constant_
 import math
 import torch.nn.functional as F
-from enum import IntEnum
 import numpy as np
 from .utils import transformer_FFN, ut_mask, pos_encode, get_clones
 from torch.nn import Module, Embedding, LSTM, Linear, Dropout, LayerNorm, TransformerEncoder, TransformerEncoderLayer, \
@@ -13,12 +12,6 @@ from torch.nn.functional import one_hot, cross_entropy, multilabel_margin_loss, 
 import random
 import time
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-class Dim(IntEnum):
-    batch = 0
-    seq = 1
-    feature = 2
 
 class sparseKT(nn.Module):
     def __init__(self, n_question, n_pid, 
