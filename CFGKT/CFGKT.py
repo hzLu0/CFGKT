@@ -4,27 +4,19 @@ from torch.nn.init import xavier_uniform_,kaiming_normal_
 from torch.nn.init import constant_
 import math
 import torch.nn.functional as F
-from enum import IntEnum
 import numpy as np
 import seaborn
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-class Dim(IntEnum):
-    batch = 0
-    seq = 1
-    feature = 2
 
 class CFGKT(nn.Module):
-    def __init__(self, n_question, n_pid, d_model, n_blocks,
+    def __init__(self, n_concepts, n_pid, d_model, n_blocks,
                  kq_same, dropout, model_type, memory_size,final_fc_dim,
                  n_heads, d_ff,time,interval, separate_qa=False,attn_=True):
         super().__init__()
         '''
-        CFGKT consists of the state-enhanced embedding, the coarse-grained memory, the fine-grained memory, and 
-        the state fusion attention. 
+        CFGKT consists of the state-enhanced embedding, the coarse-grained block, the fine-grained block, and 
+        the state-fusion attention. 
         '''
-        self.n_question = n_question
+        self.n_question = n_concepts
         self.dropout = dropout
         self.kq_same = kq_same  # Whether k and q come from the same learning sequence.
         self.n_pid = n_pid  # Represent the answers as two vectors or a embedding matrix.
@@ -60,7 +52,7 @@ class CFGKT(nn.Module):
         self.MS = nn.Parameter(torch.Tensor(memory_size, self.d_model))
         kaiming_normal_(self.MS)
 
-        self.final_final_attn = my_MultiheadAttention_distilling(self.d_model, n_heads, device)
+        self.state_attn = state_fusion(self.d_model, n_heads, device)
         if self.attn_ == True:
             self.final_attn = nn.MultiheadAttention(embed_dim=self.d_model, num_heads=4, dropout=dropout, batch_first=True)
         self.rnn_a = nn.Linear(self.d_model, self.d_model)
@@ -104,15 +96,18 @@ class CFGKT(nn.Module):
         # Embed the time-related information and concatenate them with answers and exercises.
         in_dotime = self.time_embed(dotime)
         in_lagtime = self.interval_embed(lagtime)
-        q_embed_data = self.encoder_map(torch.cat((q_embed_data, in_dotime, in_lagtime),dim=-1))
+        if self.separate_qa:
+            q_embed_data = q_embed_data
+        else:
+            q_embed_data = self.encoder_map(torch.cat((q_embed_data, in_dotime, in_lagtime),dim=-1))
         qa_embed_data = self.decoder_map(torch.cat((qa_embed_data, in_dotime, in_lagtime),dim=-1))
 
-        # This is the process of CFG for proficiency.
+        # This is the process of CGB for proficiency.
         trans_output = self.trans(q_embed_data, qa_embed_data)
 
-        # This is the prosess of FGM for experience.
-        qaqa_emb = self.qa_embed(torch.LongTensor([2 * self.n_question])).repeat(qa_embed_data.size(0),1,1)
-        qaqa_emb = torch.cat((qaqa_emb, qa_embed_data[:, :-1, :]), dim=1)
+        # This is the prosess of FGB for experience.
+        qa_shift = self.qa_embed(torch.LongTensor([2 * self.n_question])).repeat(qa_embed_data.size(0),1,1)
+        qa_shift = torch.cat((qa_shift, qa_embed_data[:, :-1, :]), dim=1)
         unit_out = self.unit(q_embed_data, qa_embed_data)
 
         # Write & Read the proficiency and experience with the external memories.
@@ -121,8 +116,9 @@ class CFGKT(nn.Module):
 
         # This is the state-fusion attention mechanism.
         mask = ut_mask(unit_out.size(1))
-        trans_output = self.final_final_attn(unit_out, trans_output, qaqa_emb)
-        trans_output, _ = self.final_attn(unit_out, trans_output, qaqa_emb, attn_mask=mask)
+        trans_output = self.state_attn(unit_out, trans_output, qa_shift)
+        if self.attn_ == True: 
+            trans_output, _ = self.final_attn(unit_out, trans_output, qa_shift, attn_mask=mask)
 
         # Predict students' performance on current question via the mlp layer.
         concat_q = torch.cat([trans_output, q_embed_data], dim=-1)
@@ -130,9 +126,9 @@ class CFGKT(nn.Module):
         x = torch.sigmoid(output)
         return x.squeeze(-1)
 
-class my_MultiheadAttention_distilling(nn.Module):
+class state_fusion(nn.Module):
     def __init__(self, hid_dim, n_heads, device):
-        super(my_MultiheadAttention_distilling, self).__init__()
+        super(state_fusion, self).__init__()
         self.hid_dim = hid_dim
         self.n_heads = n_heads
         assert hid_dim % n_heads == 0
@@ -148,7 +144,6 @@ class my_MultiheadAttention_distilling(nn.Module):
         xavier_uniform_(self.w_q.weight)
         xavier_uniform_(self.w_k.weight)
         xavier_uniform_(self.w_v.weight)
-        #
         if self.proj_bias:
             constant_(self.k_linear.bias, 0.)
             constant_(self.v_linear.bias, 0.)
@@ -269,7 +264,7 @@ class ext_mem(nn.Module):
     def __init__(self, d_model, m_size):
         super(ext_mem, self).__init__()
         '''
-        This is the external memory for storing students' states.
+        This is the external memory for storing students' experience and proficiency.
         '''
         self.d_model = d_model
         self.m_size = m_size
@@ -279,9 +274,8 @@ class ext_mem(nn.Module):
         self.a_gate = nn.Linear(self.d_model, self.d_model)    # add gate
 
     def forward(self, q, qa, MS):
-        # MS is the static matrix, stores the underlying latent knowledge concepts.
+        # MS is the static matrix, storing the underlying latent knowledge concepts.
         batch_size = q.shape[0]
-        # There is specific memory for each student where operations will be made, respectively.
         mem_slot = self.dy_mem.unsqueeze(0).repeat(batch_size, 1, 1)
         mem = [mem_slot]
         w = torch.softmax(torch.matmul(q, MS.T), dim=-1)
