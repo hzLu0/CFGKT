@@ -7,15 +7,6 @@ import torch.nn.functional as F
 from enum import IntEnum
 import numpy as np
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-class Dim(IntEnum):
-    batch = 0
-    seq = 1
-    feature = 2
-
-
 class AKT(nn.Module):
     def __init__(self, n_question, n_pid, d_model, n_blocks,
                  kq_same, dropout, model_type, final_fc_dim=512, n_heads=8, d_ff=1024,  l2=1e-5, separate_qa=False):
