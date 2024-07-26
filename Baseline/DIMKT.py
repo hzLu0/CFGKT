@@ -4,7 +4,6 @@ from torch.autograd import Variable
 import torch
 import torch.nn as nn
 
-device = 'cpu'
 class DIMKT(Module):
     def __init__(self, num_q, num_c, dropout, emb_size, batch_size, difficult_levels):
         super().__init__()
