@@ -4,7 +4,6 @@ from torch.nn.init import xavier_uniform_
 from torch.nn.init import constant_
 import math
 import torch.nn.functional as F
-from enum import IntEnum
 import numpy as np
 
 class AKT(nn.Module):
