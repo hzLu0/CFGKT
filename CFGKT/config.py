@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import torch
 
-def set_opt():
+def set_opt(dataset):
     parser = ArgumentParser()
     parser.add_argument('--gpu', type=int, default=0, help='which gpu to use. default to -1: not using any')
     if dataset = 'Junyi':
