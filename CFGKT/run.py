@@ -9,13 +9,13 @@ import pandas as pd
 import gc
 from sklearn.model_selection import train_test_split
 import numpy as np
-
+from config import set_opt
 
 def run(args):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     dtypes = {'uuid': 'int32',
               "upid": "int16", 'ucid': 'int16','is_correct': 'int8'}
-    train_df = pd.read_csv('./New_Log_Problem.csv', usecols=['uuid', 'upid', 'ucid', 'is_correct', 'timestamp_TW',
+    train_df = pd.read_csv('./Junyi.csv', usecols=['uuid', 'upid', 'ucid', 'is_correct', 'timestamp_TW',
                                                              'total_sec_taken'], dtype=dtypes, encoding='gbk')
     print("shape of dataframe :", train_df.shape)
     raw_skill = train_df.ucid.unique().tolist()
@@ -70,82 +70,6 @@ def run(args):
     test_one_epoch(model=save_model, test_iterator=test_loader, device=device)
 
 if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser(description="train SAKT_ednet")
-    arg_parser.add_argument("--learning_rate",
-                            dest="learning_rate",
-                            default=0.001,
-                            type=float,
-                            required=False)
-    arg_parser.add_argument("--kq_same",
-                            dest="kq_same",
-                            default=1,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--n_blocks",
-                            dest="n_blocks",
-                            default=4,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--memory_size",
-                            dest="memory_size",
-                            default=60,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--batch_size",
-                            dest="batch_size",
-                            default=32,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--time",
-                            dest="time",
-                            default=300,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--interval",
-                            dest="interval",
-                            default=1440,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--final_fc_dim",
-                            dest="final_fc_dim",
-                            default=512,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--n_heads",
-                            dest="n_heads",
-                            default=8,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--d_ff",
-                            dest="d_ff",
-                            default=1024,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--embed_dim",
-                            dest="embed_dim",
-                            default=256,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--dropout",
-                            dest="dropout",
-                            default=0.05,
-                            type=float,
-                            required=False)
-    arg_parser.add_argument("--epoch",
-                            dest="epoch",
-                            default=100,  # 15
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--max_len",
-                            dest="max_len",
-                            default=100,
-                            type=int,
-                            required=False)
-    arg_parser.add_argument("--save_params",
-                            dest="save_params",
-                            default=False,
-                            type=bool,
-                            required=False)
-    args = arg_parser.parse_args()
-
+    dataset_name = 'Junyi'
+    args = set_opt(dataset_name)
     run(args)
