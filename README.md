@@ -49,6 +49,8 @@ Deep-IRT: https://github.com/ckyeungac/DeepIRT
 
 DKVMN: https://github.com/jennyzhang0215/DKVMN
 
+EduKTM: https://github.com/bigdata-ustc/EduKTM
+
 Train and Test
 ===
 
